@@ -1,0 +1,322 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+/* Estilo base para el Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  background-color: #C4D6B0;
+  color: #2c2525;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  position: sticky;
+  top: 10px;
+  margin: 10px 20px;
+  z-index: 1000;
+}
+
+/* Estilo para el logo o nombre de la marca */
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #101111; 
+  text-decoration: none;
+  margin-left: 40px;
+}
+
+/* Estilo para el menú */
+.navbar-menu {
+  list-style-type: none;
+  display: flex;
+  gap: 15px;
+  margin: 0;
+  padding: 0;
+}
+
+/* Estilo para los elementos del menú */
+.navbar-menu li {
+  position: relative;
+}
+
+/* Estilo para los enlaces del menú */
+.navbar-menu a {
+  color: #2c2525;
+  text-decoration: none;
+  font-size: 1rem;
+  padding: 8px 15px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+/* Hover efecto en los enlaces del menú */
+.navbar-menu a:hover {
+  background-color: #e2e6ea;
+}
+
+/* Estilo para el botón de carrito */
+.btn {
+  background-color: #2c2525;
+  color: #C4D6B0;
+  padding: 8px 20px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.btn:hover {
+  background-color: #1C86EE;
+}
+
+.btn .fa-cart-shopping {
+  margin-right: 8px;
+}
+.section-title {
+  background-image: url('./assets/Pizzeria-Florence-Ali-di-Firenze-5.jpeg'); /* Verifica esta ruta */
+  background-size: cover;         /* Asegúrate de que la imagen cubra todo el contenedor */
+  background-position: center;    /* Centra la imagen */
+  background-repeat: no-repeat;   /* Evita que la imagen se repita */
+  padding: 40px;                  /* Espaciado interno */
+  color: #ecf7f0;                 /* Color del texto */
+  font-size: 3rem;                /* Tamaño de la fuente */
+  font-weight: bold;              /* Negrita */
+  text-align: center;             /* Centrar el texto */
+  border-radius: 10px;            /* Bordes redondeados */
+  margin: 20px 0;                 /* Espaciado superior e inferior */
+}
+
+/* Estilo para las tarjetas (cards) */
+.card {
+  border: 10px solid #332f2f;
+  border-radius: 10px;
+  margin: 20px auto;
+  max-width: 300px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-img-top {
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  max-width: 100%;
+  height: auto;
+}
+
+.card-body {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.card-title {
+  font-size: 1.5em;
+  margin-bottom: 10px;
+}
+
+.card-text {
+  margin-bottom: 10px;
+  font-size: 1em;
+}
+
+.card-price {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.card-ingredients {
+  margin-bottom: 10px;
+  font-style: italic;
+}
+
+/* Contenedor de las tarjetas */
+.card-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* Estilo del contenedor de pizzas */
+.pizza-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+
+.card-pizza {
+  width: 300px;
+  border: 1px solid #d4d0d0;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 10px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pizza-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+/* Estilo del pie de página */
+.footer {
+  background-color: #2c2525;
+  color: #C4D6B0;
+  text-align: center;
+  padding: 20px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  margin-top: 20px;
+}
+
+/* Título de la sección */
+.section-title {
+  background-size: cover;
+  background-position: center;
+  padding: 40px;
+  color: #ecf7f0;
+  font-size: 3rem;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 10px;
+  margin: 20px 0;
+}
+
+/* Botones del grupo de acciones */
+.btn-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn-group button {
+  background-color: #d48d4b;
+  border: none;
+  color: white;
+  padding: 10px 15px;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+  margin: 0 2px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-group button:hover {
+  background-color: #155a8a;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-group button:active {
+  background-color: #0f3d5a;
+  box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilos comunes para los enlaces y el botón */
+.navbar .navbar-menu a, 
+.navbar .navbar-menu button {
+  background-color: transparent;
+  border: none;
+  color: #000;
+  text-decoration: none;
+  padding: 8px 15px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.navbar .navbar-menu a:hover, 
+.navbar .navbar-menu button:hover {
+  background-color: #e2e2e2;
+  border-radius: 5px;
+}
+
+.navbar .navbar-menu button {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* Estilo específico para btn-link */
+.btn-link {
+  padding: 8px 15px;
+  background: none;
+  border: none;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-link:hover {
+  background-color: #e2e2e2;
+  border-radius: 5px;
+}
+/* Estilos para el botón de Pagar */
+.btn-pay {
+  background-color: #28a745; /* Verde oscuro */
+  color: white; /* Texto blanco */
+  padding: 10px 20px; /* Espaciado interno */
+  font-size: 1.2rem; /* Tamaño del texto */
+  font-weight: bold; /* Negrita */
+  border: none; /* Sin bordes */
+  border-radius: 10px; /* Bordes redondeados */
+  cursor: pointer; /* Mostrar cursor de puntero */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Transición suave */
+}
+
+/* Cambiar el color y la sombra al pasar el ratón */
+.btn-pay:hover {
+  background-color: #218838; /* Verde más oscuro en hover */
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* Sombra más intensa */
+}
+
+/* Botón deshabilitado */
+.btn-pay:disabled {
+  background-color: #6c757d; /* Color gris para deshabilitado */
+  cursor: not-allowed; /* Cursor de no permitido */
+  opacity: 0.6; /* Reducir opacidad */
+  box-shadow: none; /* Sin sombra */
+}

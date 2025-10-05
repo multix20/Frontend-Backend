@@ -1,0 +1,142 @@
+body {
+  font-family: Arial, sans-serif;
+}
+
+header {
+  text-align: center;
+  margin: 20px 0;
+}
+
+header h1 {
+  font-size: 3em;
+}
+
+header p {
+  font-size: 1.5em;
+}
+
+.btn-outline-light, .btn-warning {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(255, 255, 255) !important; /* Asegúrate de que el texto de los botones sea blanco */
+  border-color: white !important;
+}
+
+.btn-outline-light:hover {
+  color: #201f1e !important; /* Cambia el color del texto al hacer hover */
+  background-color: rgb(85, 182, 41) !important;
+  border-color: white !important;
+}
+
+.btn-warning {
+  color: #343a40 !important;
+  border-color: #c59b1c !important;
+}
+
+.btn-warning:hover {
+  background-color: #e0a800 !important;
+  border-color: #d39e00 !important;
+}
+
+/* Estilo común para botones de registro */
+.register-btn, .btn-outline-light {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.register-btn span, .btn-outline-light span {
+  margin-right: 5px; /* Ajusta el espacio entre el icono y el texto */
+}
+
+.card {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  margin: 20px auto;
+  max-width: 300px;
+  text-align: center;
+}
+
+.card img {
+  max-width: 100%;
+  border-radius: 10px;
+}
+
+nav {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+}
+
+nav button {
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px 20px;
+}
+
+nav button:hover {
+  background-color: #12487e;
+}
+
+.register {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.register span {
+  margin-right: 5px; /* Ajusta el espacio entre el icono y el texto */
+}
+.formulario {
+  max-width: 400px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.formulario label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.formulario input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.formulario button {
+  width: 100%;
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.formulario button:hover {
+  background-color: #45a049;
+}
+
+.formulario p {
+  color: red;
+  font-weight: bold;
+}
+
+
+footer {
+  text-align: center;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-top: 1px solid #ddd;
+  margin-top: 20px;
+}
