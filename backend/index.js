@@ -1,3 +1,8 @@
+const connectDB = require('./config/database');
+
+// Conectar a MongoDB
+connectDB();
+
 const express = require('express');
 const cors = require('cors');
 const requestLogger = require('./middlewares/logger');
