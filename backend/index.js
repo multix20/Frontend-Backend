@@ -5,11 +5,12 @@ connectDB();
 
 const express = require('express');
 const cors = require('cors');
-const requestLogger = require('./middlewares/logger');
+const requestLogger = require('./middleware/logger');
 
 // Importar rutas
 const pizzaRoutes = require('./routes/pizzaRoutes');
 const authRoutes = require('./routes/authRoutes');
+const checkoutRoutes = require('./routes/checkoutRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -19,19 +20,19 @@ const PORT = process.env.PORT || 5000;
 // ============================================
 app.use(cors());
 app.use(express.json());
-app.use(requestLogger); // Nuestro logger personalizado
+app.use(requestLogger);
 
 // ============================================
 // RUTAS
 // ============================================
-// Ruta de bienvenida
 app.get('/', (req, res) => {
   res.json({
     message: 'API Pizzería Mamma Mia',
-    version: '1.0.0',
+    version: '2.0.0',
     endpoints: {
       pizzas: '/api/pizzas',
-      auth: '/api/auth'
+      auth: '/api/auth',
+      checkouts: '/api/checkouts'
     }
   });
 });
@@ -41,6 +42,9 @@ app.use('/api/pizzas', pizzaRoutes);
 
 // Rutas de autenticación
 app.use('/api/auth', authRoutes);
+
+// Rutas de checkout
+app.use('/api/checkouts', checkoutRoutes);
 
 // ============================================
 // MANEJO DE RUTAS NO ENCONTRADAS (404)
@@ -73,5 +77,6 @@ app.listen(PORT, () => {
   console.log(`📍 URL: http://localhost:${PORT}`);
   console.log(`🍕 Pizzas: http://localhost:${PORT}/api/pizzas`);
   console.log(`🔐 Auth: http://localhost:${PORT}/api/auth`);
+  console.log(`🛒 Checkout: http://localhost:${PORT}/api/checkouts`);
   console.log('='.repeat(50));
 });

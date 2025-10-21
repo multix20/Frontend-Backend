@@ -1,11 +1,10 @@
-
 const mongoose = require('mongoose');
 
 const pizzaSchema = new mongoose.Schema({
   id: {
     type: String,
     required: true,
-    unique: true
+    unique: true // ✅ Esto ya crea el índice automáticamente
   },
   name: {
     type: String,
@@ -39,6 +38,6 @@ const pizzaSchema = new mongoose.Schema({
 
 // Índice para búsquedas más rápidas
 pizzaSchema.index({ name: 1 });
-pizzaSchema.index({ id: 1 });
+// ❌ ELIMINAR esta línea: pizzaSchema.index({ id: 1 });
 
 module.exports = mongoose.model('Pizza', pizzaSchema);
