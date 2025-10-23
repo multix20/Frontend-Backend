@@ -1,18 +1,35 @@
+// NO ejecutar dotenv aquí, se ejecuta en index.js
 const mongoose = require('mongoose');
-
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/pizzeria_mamma_mia';
 
 const connectDB = async () => {
   try {
-    // ✅ Sin opciones deprecadas
-    await mongoose.connect(MONGODB_URI);
+    const conn = await mongoose.connect(process.env.MONGODB_URI);
     
     console.log('='.repeat(50));
-    console.log('✅ MongoDB conectado:', mongoose.connection.host);
-    console.log('📊 Base de datos:', mongoose.connection.name);
+    console.log(`✅ MongoDB Conectado: ${conn.connection.host}`);
+    console.log(`📊 Base de datos: ${conn.connection.name}`);
+    console.log(`🌍 Entorno: ${process.env.NODE_ENV}`);
     console.log('='.repeat(50));
+
+    // Event listeners para monitoreo
+    mongoose.connection.on('error', err => {
+      console.error('❌ Error de MongoDB:', err);
+    });
+
+    mongoose.connection.on('disconnected', () => {
+      console.log('⚠️ MongoDB desconectado');
+    });
+
+    // Manejo de cierre graceful
+    process.on('SIGINT', async () => {
+      await mongoose.connection.close();
+      console.log('🔌 Conexión a MongoDB cerrada por terminación de la app');
+      process.exit(0);
+    });
+
+    return conn;
   } catch (error) {
-    console.error('❌ Error conectando a MongoDB:', error.message);
+    console.error('❌ Error al conectar a MongoDB:', error.message);
     process.exit(1);
   }
 };

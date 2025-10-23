@@ -7,7 +7,7 @@ const {
   updateOrderStatus,
   cancelOrder
 } = require('../controllers/checkoutController');
-const { authenticateToken, requireAdmin, optionalAuth } = require('../middleware/authMiddleware');
+const { authenticateToken, requireAdmin, optionalAuth } = require('../middlewares/authMiddleware');
 
 // POST /api/checkouts - Crear orden
 router.post('/', optionalAuth, createCheckout);

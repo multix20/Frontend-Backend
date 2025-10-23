@@ -1,11 +1,8 @@
-const connectDB = require('./config/database');
-
-// Conectar a MongoDB
-connectDB();
-
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const requestLogger = require('./middleware/logger');
+const connectDB = require('./config/database');
+const requestLogger = require('./middlewares/logger');
 
 // Importar rutas
 const pizzaRoutes = require('./routes/pizzaRoutes');
@@ -16,9 +13,21 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ============================================
+// CONECTAR A BASE DE DATOS
+// ============================================
+connectDB();
+
+// ============================================
 // MIDDLEWARES GLOBALES
 // ============================================
-app.use(cors());
+// CORS configurado con variable de entorno
+const corsOptions = {
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(requestLogger);
 
@@ -29,21 +38,42 @@ app.get('/', (req, res) => {
   res.json({
     message: 'API Pizzería Mamma Mia',
     version: '2.0.0',
+    environment: process.env.NODE_ENV,
     endpoints: {
       pizzas: '/api/pizzas',
       auth: '/api/auth',
-      checkouts: '/api/checkouts'
+      checkout: '/api/checkouts'
+    },
+    documentation: {
+      pizzas: {
+        'GET /api/pizzas': 'Listar todas las pizzas disponibles',
+        'GET /api/pizzas/:id': 'Obtener pizza por ID',
+        'POST /api/pizzas': 'Crear pizza (Admin)',
+        'PUT /api/pizzas/:id': 'Actualizar pizza (Admin)',
+        'DELETE /api/pizzas/:id': 'Eliminar pizza (Admin)',
+        'PATCH /api/pizzas/:id/restore': 'Restaurar pizza (Admin)'
+      },
+      auth: {
+        'POST /api/auth/register': 'Registrar usuario',
+        'POST /api/auth/login': 'Iniciar sesión',
+        'GET /api/auth/profile': 'Obtener perfil (Auth)',
+        'PUT /api/auth/profile': 'Actualizar perfil (Auth)',
+        'PUT /api/auth/change-password': 'Cambiar contraseña (Auth)'
+      },
+      checkout: {
+        'POST /api/checkouts': 'Crear orden',
+        'GET /api/checkouts': 'Listar órdenes (Auth)',
+        'GET /api/checkouts/:id': 'Obtener orden (Auth)',
+        'PATCH /api/checkouts/:id/status': 'Actualizar estado (Admin)',
+        'DELETE /api/checkouts/:id': 'Cancelar orden (Auth)'
+      }
     }
   });
 });
 
-// Rutas de pizzas
+// Rutas de la API
 app.use('/api/pizzas', pizzaRoutes);
-
-// Rutas de autenticación
 app.use('/api/auth', authRoutes);
-
-// Rutas de checkout
 app.use('/api/checkouts', checkoutRoutes);
 
 // ============================================
@@ -62,9 +92,35 @@ app.use((req, res) => {
 // ============================================
 app.use((err, req, res, next) => {
   console.error('Error:', err.stack);
-  res.status(500).json({
+  
+  // Error de JWT
+  if (err.name === 'JsonWebTokenError') {
+    return res.status(401).json({
+      error: 'Token inválido',
+      message: 'El token de autenticación no es válido'
+    });
+  }
+  
+  // Error de JWT expirado
+  if (err.name === 'TokenExpiredError') {
+    return res.status(401).json({
+      error: 'Token expirado',
+      message: 'El token de autenticación ha expirado'
+    });
+  }
+  
+  // Error de validación de Mongoose
+  if (err.name === 'ValidationError') {
+    return res.status(400).json({
+      error: 'Error de validación',
+      message: err.message
+    });
+  }
+  
+  // Error genérico
+  res.status(err.status || 500).json({
     error: 'Error interno del servidor',
-    message: err.message
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Ocurrió un error inesperado'
   });
 });
 
@@ -78,5 +134,6 @@ app.listen(PORT, () => {
   console.log(`🍕 Pizzas: http://localhost:${PORT}/api/pizzas`);
   console.log(`🔐 Auth: http://localhost:${PORT}/api/auth`);
   console.log(`🛒 Checkout: http://localhost:${PORT}/api/checkouts`);
+  console.log(`🌍 Entorno: ${process.env.NODE_ENV}`);
   console.log('='.repeat(50));
 });

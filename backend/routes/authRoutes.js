@@ -7,7 +7,7 @@ const {
   updateProfile, 
   changePassword 
 } = require('../controllers/authController');
-const { authenticateToken } = require('../middleware/authMiddleware');
+const { authenticateToken } = require('../middlewares/authMiddleware');
 
 // ============================================
 // RUTAS PÚBLICAS (sin autenticación)

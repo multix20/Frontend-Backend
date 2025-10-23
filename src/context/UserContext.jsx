@@ -1,96 +1,177 @@
-import { createContext, useState } from 'react';
+import { createContext, useState, useEffect } from 'react';
+import { authService } from '../services/api';
 
 // Crear el contexto de usuario
-const UserContext = createContext();  // Declaración del contexto de usuario
+export const UserContext = createContext();
 
-// Crear el proveedor del contexto de usuario
-const UserProvider = ({ children }) => {
-  // Definir los estados del token y el email del usuario autenticado
+// Proveedor del contexto de usuario
+export const UserProvider = ({ children }) => {
   const [token, setToken] = useState(null);
-  const [email, setEmail] = useState(null);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Métodos para login, registro, logout, etc.
+  // Verificar si hay un token guardado al cargar la aplicación
+  useEffect(() => {
+    const initAuth = async () => {
+      const savedToken = localStorage.getItem('token');
+      const savedUser = localStorage.getItem('user');
 
-  // Método para login
-  const login = async (userEmail, password) => {
-    try {
-      const response = await fetch('http://localhost:5000/api/auth/login', { 
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: userEmail, password }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setToken(data.token); 
-        setEmail(userEmail);  
-      } else {
-        console.error('Error en la autenticación');
+      if (savedToken && savedUser) {
+        setToken(savedToken);
+        setUser(JSON.parse(savedUser));
+        
+        // Verificar que el token siga siendo válido
+        try {
+          const profile = await authService.getProfile();
+          setUser(profile.user);
+          localStorage.setItem('user', JSON.stringify(profile.user));
+        } catch (error) {
+          console.error('Token inválido, limpiando sesión');
+          logout();
+        }
       }
+      setLoading(false);
+    };
+
+    initAuth();
+  }, []);
+
+  // Método para registro
+  const register = async (email, password, name) => {
+    try {
+      setError(null);
+      setLoading(true);
+
+      const data = await authService.register(email, password, name);
+      
+      // Guardar token y usuario
+      setToken(data.token);
+      setUser(data.user);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      return { success: true, user: data.user };
     } catch (error) {
-      console.error('Error al hacer login:', error);
+      const errorMessage = error.response?.data?.message || 'Error al registrar usuario';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
     }
   };
 
-  
-  const register = async (userEmail, password) => {
+  // Método para login
+  const login = async (email, password) => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', { 
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: userEmail, password }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setToken(data.token); // Guardar el token recibido
-        setEmail(userEmail);  // Guardar el email recibido
-      } else {
-        console.error('Error en el registro');
-      }
+      setError(null);
+      setLoading(true);
+
+      const data = await authService.login(email, password);
+      
+      // Guardar token y usuario
+      setToken(data.token);
+      setUser(data.user);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      return { success: true, user: data.user };
     } catch (error) {
-      console.error('Error al registrar:', error);
+      const errorMessage = error.response?.data?.message || 'Error al iniciar sesión';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
     }
   };
 
   // Método para logout
   const logout = () => {
-    setToken(null); // Limpiar el token
-    setEmail(null); // Limpiar el email
+    setToken(null);
+    setUser(null);
+    setError(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   };
 
-  // Método para obtener el perfil del usuario
+  // Método para obtener el perfil actualizado
   const getProfile = async () => {
     if (!token) {
-      console.error('Usuario no autenticado');
-      return;
+      setError('Usuario no autenticado');
+      return { success: false, error: 'Usuario no autenticado' };
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/me', { // Cambié la URL aquí
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Perfil del usuario:', data);
-      } else {
-        console.error('Error al obtener el perfil del usuario');
-      }
+      setError(null);
+      const data = await authService.getProfile();
+      setUser(data.user);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      return { success: true, user: data.user };
     } catch (error) {
-      console.error('Error al obtener el perfil:', error);
+      const errorMessage = error.response?.data?.message || 'Error al obtener perfil';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
     }
   };
+
+  // Método para actualizar perfil
+  const updateProfile = async (profileData) => {
+    try {
+      setError(null);
+      setLoading(true);
+
+      const data = await authService.updateProfile(profileData);
+      setUser(data.user);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      return { success: true, user: data.user };
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Error al actualizar perfil';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Método para cambiar contraseña
+  const changePassword = async (currentPassword, newPassword) => {
+    try {
+      setError(null);
+      setLoading(true);
+
+      await authService.changePassword(currentPassword, newPassword);
+      return { success: true, message: 'Contraseña actualizada correctamente' };
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Error al cambiar contraseña';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Verificar si el usuario está autenticado
+  const isAuthenticated = !!token && !!user;
+
+  // Verificar si el usuario es admin
+  const isAdmin = user?.role === 'admin';
 
   return (
     <UserContext.Provider
       value={{
         token,
-        email,
+        user,
+        loading,
+        error,
+        isAuthenticated,
+        isAdmin,
         login,
         register,
         logout,
         getProfile,
+        updateProfile,
+        changePassword,
       }}
     >
       {children}
@@ -98,6 +179,4 @@ const UserProvider = ({ children }) => {
   );
 };
 
-// Exportar `UserContext` como exportación nombrada y por defecto
-export { UserContext, UserProvider };
-export default UserContext;  // Exportación por defecto
+export default UserContext;

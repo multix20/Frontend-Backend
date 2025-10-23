@@ -2,38 +2,57 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
-import RegisterRedirect from './pages/RegisterRedirect.jsx'; // Importamos RegisterRedirect
-import LoginRedirect from './pages/LoginRedirect.jsx'; // Importamos LoginRedirect
+import Register from './pages/Register';
+import Login from './pages/Login';
 import Cart from './pages/Cart';
 import Pizza from './pages/Pizzas';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import './App.css';
 
-// Importar el UserProvider
+// Importar Providers
 import { UserProvider } from './context/UserContext'; 
-import { CartProvider } from './context/CartContext.jsx';
-import { PizzaProvider } from './context/PizzaContext.jsx';
-import ProtectedRoute from './components/ProtectedRoute'; // Importar ProtectedRoute
+import { CartProvider } from './context/CartContext';
+import { PizzaProvider } from './context/PizzaContext';
+
+// Importar componentes de protección
+import ProtectedRoute from './components/ProtectedRoute';
+import PublicRoute from './components/PublicRoute';
 
 const App = () => (
-  <CartProvider>
-    <PizzaProvider>
-      <UserProvider>
+  <UserProvider>
+    <CartProvider>
+      <PizzaProvider>
         <Router>
           <div>
             <Navbar />
             <Routes>
+              {/* Ruta pública */}
               <Route path="/" element={<Home />} />
-              
-              {/* Rutas que redirigen si el usuario está autenticado */}
-              <Route path="/register" element={<RegisterRedirect />} />
-              <Route path="/login" element={<LoginRedirect />} />
 
+              {/* Rutas públicas que redirigen si está autenticado */}
+              <Route 
+                path="/register" 
+                element={
+                  <PublicRoute>
+                    <Register />
+                  </PublicRoute>
+                } 
+              />
+              <Route 
+                path="/login" 
+                element={
+                  <PublicRoute>
+                    <Login />
+                  </PublicRoute>
+                } 
+              />
+
+              {/* Rutas públicas normales */}
               <Route path="/cart" element={<Cart />} />
               <Route path="/pizzas/:id" element={<Pizza />} />
 
-              {/* Ruta protegida para /profile */}
+              {/* Ruta protegida para perfil */}
               <Route 
                 path="/profile" 
                 element={
@@ -43,14 +62,15 @@ const App = () => (
                 } 
               />
 
+              {/* Ruta 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Footer />
           </div>
         </Router>
-      </UserProvider>
-    </PizzaProvider>
-  </CartProvider>
+      </PizzaProvider>
+    </CartProvider>
+  </UserProvider>
 );
 
 export default App;
