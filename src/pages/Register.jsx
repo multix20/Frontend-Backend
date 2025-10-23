@@ -1,36 +1,61 @@
-import React, { useState, useContext } from 'react';
-import { UserContext } from '../context/UserContext';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks';
 
 function Register() {
-  const { register } = useContext(UserContext);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const { register, loading, error } = useAuth();
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
   const [message, setMessage] = useState('');
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage('');
 
-    if (!email || !password || !confirmPassword) {
+    // Validaciones en el frontend
+    if (!formData.email || !formData.password || !formData.confirmPassword) {
       setMessage('Todos los campos son obligatorios');
       return;
     }
 
-    if (password.length < 6) {
+    if (formData.password.length < 6) {
       setMessage('La contraseña debe tener al menos 6 caracteres');
       return;
     }
 
-    if (password !== confirmPassword) {
+    if (formData.password !== formData.confirmPassword) {
       setMessage('Las contraseñas no coinciden');
       return;
     }
 
-    try {
-      await register(email, password);
-      setMessage('Registro exitoso');
-    } catch (error) {
-      setMessage('Error al registrarse. Inténtalo nuevamente.');
+    // Intentar registro
+    const result = await register(
+      formData.email,
+      formData.password,
+      formData.name || undefined
+    );
+
+    if (result.success) {
+      setMessage('¡Registro exitoso! Redirigiendo...');
+      // Redirigir al home después de 1 segundo
+      setTimeout(() => {
+        navigate('/');
+      }, 1000);
+    } else {
+      setMessage(result.error || 'Error al registrarse');
     }
   };
 
@@ -39,29 +64,73 @@ function Register() {
       <h2>Registro</h2>
       <form onSubmit={handleSubmit}>
         <div>
+          <label>Nombre (opcional):</label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="Tu nombre"
+            disabled={loading}
+          />
+        </div>
+        <div>
           <label>Email:</label>
           <input
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)} />
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="tu@email.com"
+            disabled={loading}
+            required
+          />
         </div>
         <div>
           <label>Contraseña:</label>
           <input
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)} />
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            placeholder="Mínimo 6 caracteres"
+            disabled={loading}
+            required
+          />
         </div>
         <div>
           <label>Confirmar Contraseña:</label>
           <input
             type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)} />
+            name="confirmPassword"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            placeholder="Repite tu contraseña"
+            disabled={loading}
+            required
+          />
         </div>
-        <button type="submit">Registrar</button>
+        <button type="submit" disabled={loading}>
+          {loading ? 'Registrando...' : 'Registrar'}
+        </button>
       </form>
-      {message && <p>{message}</p>}
+
+      {/* Mostrar mensaje de éxito o error */}
+      {message && (
+        <p style={{
+          color: message.includes('exitoso') ? 'green' : 'red',
+          marginTop: '10px'
+        }}>
+          {message}
+        </p>
+      )}
+
+      {/* Mostrar error del context si existe */}
+      {error && !message && (
+        <p style={{ color: 'red', marginTop: '10px' }}>
+          {error}
+        </p>
+      )}
     </div>
   );
 }

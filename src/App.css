@@ -320,3 +320,71 @@
   opacity: 0.6; /* Reducir opacidad */
   box-shadow: none; /* Sin sombra */
 }
+
+/* Agregar estos estilos a tu App.css o archivo CSS principal */
+
+/* Badge del carrito */
+.cart-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #dc3545;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  border: 2px solid white;
+}
+
+/* Spinner de carga */
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Estilos responsive para detalle de pizza */
+@media (max-width: 768px) {
+  .pizza-detail-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Botón link (para el logout en navbar) */
+.btn-link {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}

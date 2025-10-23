@@ -1,31 +1,50 @@
-import React, { useState, useContext } from 'react';
-import { UserContext } from '../context/UserContext';
-
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks';
 
 const Login = () => {
-  const { login } = useContext(UserContext);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { login, loading, error } = useAuth();
+  const navigate = useNavigate();
+  
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
   const [message, setMessage] = useState('');
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage('');
 
-    if (!email || !password) {
+    // Validaciones en el frontend
+    if (!formData.email || !formData.password) {
       setMessage('Todos los campos son obligatorios');
       return;
     }
 
-    if (password.length < 6) {
+    if (formData.password.length < 6) {
       setMessage('La contraseña debe tener al menos 6 caracteres');
       return;
     }
 
-    try {
-      await login(email, password);
-      setMessage('Inicio de sesión exitoso');
-    } catch (error) {
-      setMessage('Error al iniciar sesión. Verifica tus credenciales.');
+    // Intentar login
+    const result = await login(formData.email, formData.password);
+
+    if (result.success) {
+      setMessage('¡Inicio de sesión exitoso!');
+      // Redirigir al home después de 1 segundo
+      setTimeout(() => {
+        navigate('/');
+      }, 1000);
+    } else {
+      setMessage(result.error || 'Error al iniciar sesión');
     }
   };
 
@@ -35,23 +54,47 @@ const Login = () => {
       <form onSubmit={handleSubmit}>
         <div>
           <label>Email:</label>
-          <input 
-            type="email" 
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="tu@email.com"
+            disabled={loading}
           />
         </div>
         <div>
           <label>Contraseña:</label>
-          <input 
-            type="password" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            placeholder="Mínimo 6 caracteres"
+            disabled={loading}
           />
         </div>
-        <button type="submit">Iniciar Sesión</button>
+        <button type="submit" disabled={loading}>
+          {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+        </button>
       </form>
-      {message && <p>{message}</p>}
+      
+      {/* Mostrar mensaje de éxito o error */}
+      {message && (
+        <p style={{ 
+          color: message.includes('exitoso') ? 'green' : 'red',
+          marginTop: '10px'
+        }}>
+          {message}
+        </p>
+      )}
+      
+      {/* Mostrar error del context si existe */}
+      {error && !message && (
+        <p style={{ color: 'red', marginTop: '10px' }}>
+          {error}
+        </p>
+      )}
     </div>
   );
 };
