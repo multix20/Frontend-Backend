@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 const connectDB = require('./config/database');
 const requestLogger = require('./middlewares/logger');
 
@@ -32,6 +34,141 @@ app.use(express.json());
 app.use(requestLogger);
 
 // ============================================
+// CONFIGURACIÓN DE SWAGGER
+// ============================================
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Pizzería Mamma Mia API',
+      version: '2.0.0',
+      description: 'API REST para la gestión de la pizzería Mamma Mia',
+      contact: {
+        name: 'Soporte API',
+        email: 'soporte@mammamia.com'
+      },
+      license: {
+        name: 'MIT',
+        url: 'https://opensource.org/licenses/MIT'
+      }
+    },
+    servers: [
+      {
+        url: `http://localhost:${PORT}`,
+        description: 'Servidor de desarrollo'
+      },
+      {
+        url: 'https://api.mammamia.com',
+        description: 'Servidor de producción'
+      }
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          description: 'Ingresa el token JWT obtenido del login'
+        }
+      },
+      schemas: {
+        User: {
+          type: 'object',
+          properties: {
+            _id: { type: 'string', example: '507f1f77bcf86cd799439011' },
+            name: { type: 'string', example: 'Juan Pérez' },
+            email: { type: 'string', example: 'juan@example.com' },
+            role: { type: 'string', enum: ['user', 'admin'], example: 'user' },
+            createdAt: { type: 'string', format: 'date-time' }
+          }
+        },
+        Pizza: {
+          type: 'object',
+          properties: {
+            _id: { type: 'string', example: '507f1f77bcf86cd799439011' },
+            name: { type: 'string', example: 'Napolitana' },
+            description: { type: 'string', example: 'Pizza clásica italiana' },
+            price: { type: 'number', example: 5950 },
+            img: { type: 'string', example: 'https://example.com/pizza.jpg' },
+            ingredients: { 
+              type: 'array', 
+              items: { type: 'string' },
+              example: ['mozzarella', 'tomate', 'albahaca']
+            },
+            deleted: { type: 'boolean', example: false }
+          }
+        },
+        Checkout: {
+          type: 'object',
+          properties: {
+            _id: { type: 'string' },
+            user: { type: 'string', description: 'ID del usuario' },
+            items: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  pizza: { type: 'string', description: 'ID de la pizza' },
+                  quantity: { type: 'number', example: 2 }
+                }
+              }
+            },
+            total: { type: 'number', example: 11900 },
+            status: { 
+              type: 'string', 
+              enum: ['pending', 'completed', 'cancelled'],
+              example: 'pending'
+            },
+            createdAt: { type: 'string', format: 'date-time' }
+          }
+        },
+        Error: {
+          type: 'object',
+          properties: {
+            error: { type: 'string', example: 'Error message' },
+            message: { type: 'string', example: 'Detailed error description' }
+          }
+        }
+      }
+    },
+    security: [{
+      bearerAuth: []
+    }],
+    tags: [
+      {
+        name: 'Auth',
+        description: 'Endpoints de autenticación y gestión de usuarios'
+      },
+      {
+        name: 'Pizzas',
+        description: 'Endpoints para gestión de pizzas'
+      },
+      {
+        name: 'Checkouts',
+        description: 'Endpoints para órdenes y checkout'
+      }
+    ]
+  },
+  apis: ['./routes/*.js', './controllers/*.js']
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+
+// Ruta de documentación Swagger
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'Mamma Mia API Docs',
+  customfavIcon: '/favicon.ico'
+}));
+
+// Ruta para obtener el JSON de Swagger
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
+// ============================================
 // RUTAS
 // ============================================
 app.get('/', (req, res) => {
@@ -39,12 +176,13 @@ app.get('/', (req, res) => {
     message: 'API Pizzería Mamma Mia',
     version: '2.0.0',
     environment: process.env.NODE_ENV,
+    documentation: `http://localhost:${PORT}/api-docs`,
     endpoints: {
       pizzas: '/api/pizzas',
       auth: '/api/auth',
       checkout: '/api/checkouts'
     },
-    documentation: {
+    availableEndpoints: {
       pizzas: {
         'GET /api/pizzas': 'Listar todas las pizzas disponibles',
         'GET /api/pizzas/:id': 'Obtener pizza por ID',
@@ -83,7 +221,8 @@ app.use((req, res) => {
   res.status(404).json({
     error: 'Ruta no encontrada',
     path: req.url,
-    message: 'El endpoint solicitado no existe'
+    message: 'El endpoint solicitado no existe',
+    documentation: `http://localhost:${PORT}/api-docs`
   });
 });
 
@@ -131,6 +270,7 @@ app.listen(PORT, () => {
   console.log('='.repeat(50));
   console.log(`✅ Servidor backend corriendo`);
   console.log(`📍 URL: http://localhost:${PORT}`);
+  console.log(`📚 Docs: http://localhost:${PORT}/api-docs`);
   console.log(`🍕 Pizzas: http://localhost:${PORT}/api/pizzas`);
   console.log(`🔐 Auth: http://localhost:${PORT}/api/auth`);
   console.log(`🛒 Checkout: http://localhost:${PORT}/api/checkouts`);
