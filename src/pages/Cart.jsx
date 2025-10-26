@@ -79,7 +79,7 @@ const Cart = () => {
       };
 
       // Crear orden
-      const response = await orderService.create(orderData);
+      const response = await orderService.createOrder(orderData);
 
       if (response.success) {
         setSuccessMessage(`¡Compra realizada con éxito! Número de orden: ${response.order._id}`);
