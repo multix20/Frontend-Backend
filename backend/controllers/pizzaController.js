@@ -1,252 +1,189 @@
 const Pizza = require('../models/Pizza');
 
-/**
- * GET /api/pizzas
- * Obtener todas las pizzas disponibles
- */
-const getPizzas = async (req, res) => {
+// GET /api/pizzas - Obtener todas las pizzas disponibles
+const getAllPizzas = async (req, res, next) => {
   try {
-    const pizzas = await Pizza.find({ available: true })
-      .sort({ name: 1 })
-      .select('-__v');
+    const pizzas = await Pizza.find({ available: true }).sort({ createdAt: -1 });
     
-    console.log(`✅ ${pizzas.length} pizzas encontradas`);
-    
-    res.json(pizzas);
-  } catch (error) {
-    console.error('❌ Error al obtener pizzas:', error.message);
-    res.status(500).json({ 
-      error: 'Error al obtener pizzas',
-      message: error.message 
+    // ⭐ FORMATO CORRECTO: devolver objeto con estructura
+    res.json({
+      success: true,
+      count: pizzas.length,
+      pizzas: pizzas  // Array de pizzas dentro del objeto
     });
+  } catch (error) {
+    next(error);
   }
 };
 
-/**
- * GET /api/pizzas/:id
- * Obtener una pizza específica por ID
- */
-const getPizzaById = async (req, res) => {
+// GET /api/pizzas/:id - Obtener una pizza por ID
+const getPizzaById = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    
-    // Buscar por el campo 'id' personalizado (ej: 'p001')
-    const pizza = await Pizza.findOne({ id }).select('-__v');
-    
+    const pizza = await Pizza.findOne({ 
+      $or: [
+        { _id: req.params.id },
+        { id: req.params.id }
+      ],
+      available: true 
+    });
+
     if (!pizza) {
-      return res.status(404).json({ 
-        error: 'Pizza no encontrada',
-        id: id 
+      return res.status(404).json({
+        success: false,
+        message: 'Pizza no encontrada'
       });
     }
-    
-    if (!pizza.available) {
-      return res.status(410).json({ 
-        error: 'Pizza no disponible',
-        message: 'Esta pizza ya no está disponible' 
-      });
-    }
-    
-    console.log(`✅ Pizza encontrada: ${pizza.name}`);
-    
-    res.json(pizza);
-  } catch (error) {
-    console.error('❌ Error al obtener pizza:', error.message);
-    res.status(500).json({ 
-      error: 'Error al obtener pizza',
-      message: error.message 
+
+    res.json({
+      success: true,
+      pizza: pizza
     });
+  } catch (error) {
+    next(error);
   }
 };
 
-/**
- * POST /api/pizzas
- * Crear una nueva pizza (Admin)
- */
-const createPizza = async (req, res) => {
+// POST /api/pizzas - Crear nueva pizza (solo admin)
+const createPizza = async (req, res, next) => {
   try {
     const { id, name, price, ingredients, img, desc } = req.body;
-    
+
     // Validar campos requeridos
-    if (!id || !name || !price || !ingredients || !img || !desc) {
-      return res.status(400).json({ 
-        error: 'Todos los campos son requeridos',
-        required: ['id', 'name', 'price', 'ingredients', 'img', 'desc']
+    if (!id || !name || !price || !ingredients) {
+      return res.status(400).json({
+        success: false,
+        message: 'Faltan campos requeridos: id, name, price, ingredients'
       });
     }
-    
+
     // Verificar si ya existe una pizza con ese ID
     const existingPizza = await Pizza.findOne({ id });
     if (existingPizza) {
-      return res.status(409).json({ 
-        error: 'Ya existe una pizza con ese ID',
-        id: id 
+      return res.status(400).json({
+        success: false,
+        message: 'Ya existe una pizza con ese ID'
       });
     }
-    
-    // Crear nueva pizza
-    const newPizza = new Pizza({
+
+    const pizza = await Pizza.create({
       id,
       name,
       price,
       ingredients,
       img,
-      desc,
-      available: true
+      desc
     });
-    
-    await newPizza.save();
-    
-    console.log(`✅ Pizza creada: ${newPizza.name}`);
-    
+
     res.status(201).json({
+      success: true,
       message: 'Pizza creada exitosamente',
-      pizza: newPizza
+      pizza: pizza
     });
   } catch (error) {
-    console.error('❌ Error al crear pizza:', error.message);
-    
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({ 
-        error: 'Error de validación',
-        details: error.message 
-      });
-    }
-    
-    res.status(500).json({ 
-      error: 'Error al crear pizza',
-      message: error.message 
-    });
+    next(error);
   }
 };
 
-/**
- * PUT /api/pizzas/:id
- * Actualizar una pizza existente (Admin)
- */
-const updatePizza = async (req, res) => {
+// PUT /api/pizzas/:id - Actualizar pizza (solo admin)
+const updatePizza = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const updates = req.body;
-    
-    // No permitir cambiar el ID
-    delete updates.id;
-    delete updates._id;
-    
-    const pizza = await Pizza.findOneAndUpdate(
-      { id },
-      updates,
-      { 
-        new: true, // Retornar documento actualizado
-        runValidators: true // Ejecutar validaciones
-      }
-    ).select('-__v');
-    
+    const { name, price, ingredients, img, desc } = req.body;
+
+    const pizza = await Pizza.findOne({
+      $or: [
+        { _id: req.params.id },
+        { id: req.params.id }
+      ]
+    });
+
     if (!pizza) {
-      return res.status(404).json({ 
-        error: 'Pizza no encontrada',
-        id: id 
+      return res.status(404).json({
+        success: false,
+        message: 'Pizza no encontrada'
       });
     }
-    
-    console.log(`✅ Pizza actualizada: ${pizza.name}`);
-    
+
+    // Actualizar campos
+    if (name) pizza.name = name;
+    if (price) pizza.price = price;
+    if (ingredients) pizza.ingredients = ingredients;
+    if (img) pizza.img = img;
+    if (desc) pizza.desc = desc;
+
+    await pizza.save();
+
     res.json({
+      success: true,
       message: 'Pizza actualizada exitosamente',
-      pizza
+      pizza: pizza
     });
   } catch (error) {
-    console.error('❌ Error al actualizar pizza:', error.message);
-    
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({ 
-        error: 'Error de validación',
-        details: error.message 
-      });
-    }
-    
-    res.status(500).json({ 
-      error: 'Error al actualizar pizza',
-      message: error.message 
-    });
+    next(error);
   }
 };
 
-/**
- * DELETE /api/pizzas/:id
- * Eliminar (soft delete) una pizza (Admin)
- */
-const deletePizza = async (req, res) => {
+// DELETE /api/pizzas/:id - Eliminar pizza (soft delete, solo admin)
+const deletePizza = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    
-    // Soft delete: solo marcar como no disponible
-    const pizza = await Pizza.findOneAndUpdate(
-      { id },
-      { available: false },
-      { new: true }
-    ).select('-__v');
-    
+    const pizza = await Pizza.findOne({
+      $or: [
+        { _id: req.params.id },
+        { id: req.params.id }
+      ]
+    });
+
     if (!pizza) {
-      return res.status(404).json({ 
-        error: 'Pizza no encontrada',
-        id: id 
+      return res.status(404).json({
+        success: false,
+        message: 'Pizza no encontrada'
       });
     }
-    
-    console.log(`✅ Pizza eliminada (soft delete): ${pizza.name}`);
-    
+
+    // Soft delete
+    pizza.available = false;
+    await pizza.save();
+
     res.json({
-      message: 'Pizza eliminada exitosamente',
-      pizza
+      success: true,
+      message: 'Pizza eliminada exitosamente'
     });
   } catch (error) {
-    console.error('❌ Error al eliminar pizza:', error.message);
-    res.status(500).json({ 
-      error: 'Error al eliminar pizza',
-      message: error.message 
-    });
+    next(error);
   }
 };
 
-/**
- * PATCH /api/pizzas/:id/restore
- * Restaurar una pizza eliminada (Admin)
- */
-const restorePizza = async (req, res) => {
+// PATCH /api/pizzas/:id/restore - Restaurar pizza eliminada (solo admin)
+const restorePizza = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    
-    const pizza = await Pizza.findOneAndUpdate(
-      { id },
-      { available: true },
-      { new: true }
-    ).select('-__v');
-    
+    const pizza = await Pizza.findOne({
+      $or: [
+        { _id: req.params.id },
+        { id: req.params.id }
+      ]
+    });
+
     if (!pizza) {
-      return res.status(404).json({ 
-        error: 'Pizza no encontrada',
-        id: id 
+      return res.status(404).json({
+        success: false,
+        message: 'Pizza no encontrada'
       });
     }
-    
-    console.log(`✅ Pizza restaurada: ${pizza.name}`);
-    
+
+    pizza.available = true;
+    await pizza.save();
+
     res.json({
+      success: true,
       message: 'Pizza restaurada exitosamente',
-      pizza
+      pizza: pizza
     });
   } catch (error) {
-    console.error('❌ Error al restaurar pizza:', error.message);
-    res.status(500).json({ 
-      error: 'Error al restaurar pizza',
-      message: error.message 
-    });
+    next(error);
   }
 };
 
 module.exports = {
-  getPizzas,
+  getAllPizzas,
   getPizzaById,
   createPizza,
   updatePizza,

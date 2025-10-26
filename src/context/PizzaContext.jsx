@@ -1,130 +1,114 @@
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useContext } from 'react';
 import { pizzaService } from '../services/api';
 
 export const PizzaContext = createContext();
 
 export const PizzaProvider = ({ children }) => {
   const [pizzas, setPizzas] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Cargar pizzas al montar el componente
-  useEffect(() => {
-    fetchPizzas();
-  }, []);
-
-  // Obtener todas las pizzas
   const fetchPizzas = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      const data = await pizzaService.getAll();
-      setPizzas(data.pizzas || data);
-    } catch (error) {
-      console.error('Error al cargar pizzas:', error);
-      setError('Error al cargar las pizzas');
+      console.log('🍕 Fetching pizzas...');
+      const response = await pizzaService.getAll();
+      
+      console.log('📦 Response completa:', response);
+      console.log('📊 Response.data:', response.data);
+      
+      // Manejar diferentes formatos de respuesta:
+      // 1. { success: true, pizzas: [...] }
+      // 2. { data: [...] }
+      // 3. [...] (array directo)
+      let pizzasData;
+      
+      if (response.data?.pizzas) {
+        // Formato: { pizzas: [...] }
+        pizzasData = response.data.pizzas;
+      } else if (response.data?.data) {
+        // Formato: { data: [...] }
+        pizzasData = response.data.data;
+      } else if (Array.isArray(response.data)) {
+        // Formato: [...] (array directo)
+        pizzasData = response.data;
+      } else {
+        // Último recurso
+        pizzasData = response.data;
+      }
+      
+      console.log('🎯 Pizzas extraídas:', pizzasData);
+      console.log('✅ Es array?', Array.isArray(pizzasData));
+      
+      // Asegurar que sea un array
+      if (Array.isArray(pizzasData)) {
+        setPizzas(pizzasData);
+        console.log(`✅ ${pizzasData.length} pizzas cargadas`);
+      } else {
+        console.error('❌ pizzasData no es un array:', pizzasData);
+        setPizzas([]);
+        setError('Formato de datos incorrecto del servidor');
+      }
+    } catch (err) {
+      console.error('❌ Error fetching pizzas:', err);
+      console.error('📋 Error completo:', err.response?.data || err.message);
+      
+      setError(err.response?.data?.message || 'Error al cargar las pizzas');
       setPizzas([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Obtener una pizza por ID
-  const getPizzaById = async (id) => {
+  const fetchPizzaById = async (id) => {
     try {
-      const data = await pizzaService.getById(id);
-      return data.pizza || data;
-    } catch (error) {
-      console.error('Error al cargar pizza:', error);
-      throw error;
+      setLoading(true);
+      setError(null);
+      
+      console.log(`🍕 Fetching pizza ${id}...`);
+      const response = await pizzaService.getById(id);
+      
+      console.log('📦 Pizza response:', response);
+      
+      // El backend devuelve { success: true, pizza: {...} }
+      const pizzaData = response.data?.pizza || response.data?.data || response.data;
+      
+      console.log('🎯 Pizza extraída:', pizzaData);
+      
+      return pizzaData;
+    } catch (err) {
+      console.error('❌ Error fetching pizza:', err);
+      console.error('📋 Error completo:', err.response?.data || err.message);
+      
+      setError(err.response?.data?.message || 'Error al cargar la pizza');
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Crear pizza (solo admin)
-  const createPizza = async (pizzaData) => {
-    try {
-      const data = await pizzaService.create(pizzaData);
-      // Agregar la nueva pizza al estado
-      setPizzas([...pizzas, data.pizza]);
-      return { success: true, pizza: data.pizza };
-    } catch (error) {
-      console.error('Error al crear pizza:', error);
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Error al crear pizza' 
-      };
-    }
-  };
-
-  // Actualizar pizza (solo admin)
-  const updatePizza = async (id, pizzaData) => {
-    try {
-      const data = await pizzaService.update(id, pizzaData);
-      // Actualizar la pizza en el estado
-      setPizzas(pizzas.map(p => p.id === id ? data.pizza : p));
-      return { success: true, pizza: data.pizza };
-    } catch (error) {
-      console.error('Error al actualizar pizza:', error);
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Error al actualizar pizza' 
-      };
-    }
-  };
-
-  // Eliminar pizza (solo admin)
-  const deletePizza = async (id) => {
-    try {
-      await pizzaService.delete(id);
-      // Remover la pizza del estado
-      setPizzas(pizzas.filter(p => p.id !== id));
-      return { success: true };
-    } catch (error) {
-      console.error('Error al eliminar pizza:', error);
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Error al eliminar pizza' 
-      };
-    }
-  };
-
-  // Restaurar pizza (solo admin)
-  const restorePizza = async (id) => {
-    try {
-      const data = await pizzaService.restore(id);
-      // Actualizar la pizza en el estado
-      setPizzas(pizzas.map(p => p.id === id ? data.pizza : p));
-      return { success: true, pizza: data.pizza };
-    } catch (error) {
-      console.error('Error al restaurar pizza:', error);
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Error al restaurar pizza' 
-      };
-    }
-  };
-
-  // Refrescar pizzas
-  const refreshPizzas = () => {
-    fetchPizzas();
+  const value = {
+    pizzas,
+    loading,
+    error,
+    fetchPizzas,
+    fetchPizzaById
   };
 
   return (
-    <PizzaContext.Provider
-      value={{
-        pizzas,
-        loading,
-        error,
-        getPizzaById,
-        createPizza,
-        updatePizza,
-        deletePizza,
-        restorePizza,
-        refreshPizzas,
-      }}
-    >
+    <PizzaContext.Provider value={value}>
       {children}
     </PizzaContext.Provider>
   );
+};
+
+// Hook personalizado
+export const usePizzaContext = () => {
+  const context = useContext(PizzaContext);
+  if (!context) {
+    throw new Error('usePizzaContext debe usarse dentro de PizzaProvider');
+  }
+  return context;
 };

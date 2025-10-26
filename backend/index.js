@@ -4,7 +4,7 @@ const cors = require('cors');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const connectDB = require('./config/database');
-const requestLogger = require('./middlewares/logger');
+const requestLogger = require('./middleware/logger');
 
 // Importar rutas
 const pizzaRoutes = require('./routes/pizzaRoutes');
