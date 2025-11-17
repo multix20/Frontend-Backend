@@ -63,7 +63,82 @@ const swaggerOptions = {
       }
     ],
     components: {
-      securitySchemes: {
+      securitySchemultix@multix-ASUS-TUF-Gaming-F15-FX507ZC4-FX507ZC4:~/Descargas/Hito8-main/backend$ head -50 index.js
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
+const connectDB = require('./config/database');
+const requestLogger = require('./middleware/logger');
+
+// Importar rutas
+const pizzaRoutes = require('./routes/pizzaRoutes');
+const authRoutes = require('./routes/authRoutes');
+const checkoutRoutes = require('./routes/checkoutRoutes');
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// ============================================
+// CONECTAR A BASE DE DATOS
+// ============================================
+connectDB();
+
+// ============================================
+// MIDDLEWARES GLOBALES
+// ============================================
+// CORS configurado con variable de entorno
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'https://frontend-backend-phi.vercel.app',
+      'https://frontend-backend-git-main-multix20s-projects.vercel.app',
+      /https:\/\/frontend-backend-.*\.vercel\.app$/
+    ];
+    
+    // Permitir peticiones sin origin (como Postman, curl)
+    if (!origin) return callback(null, true);
+    
+    // Verificar si el origin está permitido
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (allowed instanceof RegExp) {
+        return allowed.test(origin);
+      }
+      return allowed === origin;
+    });
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+app.use(express.json());
+app.use(requestLogger);
+
+// ============================================
+// CONFIGURACIÓN DE SWAGGER
+// ============================================
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Pizzería Mamma Mia API',
+      version: '2.0.0',
+      description: 'API REST para la gestión de la pizzería Mamma Mia',
+      contact: {
+        name: 'Soporte API',
+        email: 'soporte@mammamia.com'
+      },
+      license: {mes: {
         bearerAuth: {
           type: 'http',
           scheme: 'bearer',
